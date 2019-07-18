@@ -1,0 +1,56 @@
+version: '2.4'
+services:
+
+  gateway:
+    image: traefik:1.7.12
+    ports:
+      - "${GATEWAY_PORT}:8080" # HTTP exposed
+      - "${GATEWAY_MNGT_PORT}:8081" # HTTP Administration exposed
+
+  analyzer:
+    image: reportportal/service-analyzer:${ANALYZER_VERSION}
+
+  migrations:
+    image: reportportal/migrations:${MIGRATIONS_VERSION}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_SERVER: ${POSTGRES_SERVER}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+
+  postgres:
+    image: postgres:${POSTGRES_VERSION}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ${VOLUME_PATH_POSTGRES}:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:${RABBITMQ_VERSION}
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:${ELASTICSEARCH_VERSION}
+    volumes:
+      - ${VOLUME_PATH_ELASTICSEARCH}:/usr/share/elasticsearch/data
+
+  uat:
+    image: reportportal/service-authorization:${UAT_VERSION}
+
+  index:
+    image: reportportal/service-index:${INDEX_VERSION}
+
+
+  api:
+    image: reportportal/service-api:${API_VERSION}
+    volumes:
+      - ${VOLUME_PATH_API_STORAGE}:/data/storage
+
+  ui:
+    image: reportportal/service-ui:${UI_VERSION}
